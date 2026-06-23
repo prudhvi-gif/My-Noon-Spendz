@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="theme-color" content="#0a0a0a"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Noon ••••1420"/>
+<title>Mashreq Noon ••••1420</title>
+<link rel="manifest" href="./manifest.json"/>
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png"/>
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png"/>
+<link rel="apple-touch-icon" href="./apple-touch-icon.png"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0a0a;--s1:#141414;--s2:#1e1e1e;--s3:#282828;--border:#2a2a2a;
+  --text:#f5f5f5;--muted:#666;--dim:#444;
+  --green:#00d37f;--amber:#f5a623;--red:#ff4d4d;--blue:#4d9fff;--purple:#a855f7;--pink:#ec4899;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+  --safe-top:env(safe-area-inset-top,0px);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column;overscroll-behavior:none}
+
+/* ─── SPLASH ─────────────────────────────────────────────── */
+#splash{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .4s}
+#splash.out{opacity:0;pointer-events:none}
+.splash-logo{font-size:28px;font-weight:900;letter-spacing:-1px;color:var(--text)}
+.splash-logo span{color:var(--green)}
+.splash-steps{display:flex;flex-direction:column;gap:9px;width:min(280px,80vw)}
+.step-row{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;color:var(--dim);transition:color .3s}
+.step-row.active{color:var(--text)}
+.step-row.done{color:var(--green)}
+.step-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.splash-bar-wrap{width:min(280px,80vw);height:3px;background:var(--s3);border-radius:4px;overflow:hidden}
+.splash-bar{height:100%;background:var(--green);border-radius:4px;width:0;transition:width .4s ease}
+.splash-sub{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.06em}
+
+/* ─── ERROR ──────────────────────────────────────────────── */
+#error-screen{position:fixed;inset:0;z-index:998;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;text-align:center}
+#error-screen h2{font-size:20px;font-weight:800;color:var(--red)}
+#error-screen p{font-size:13px;color:var(--muted);line-height:1.6;max-width:300px}
+.err-box{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:left;width:100%;max-width:320px;font-family:var(--mono);font-size:11px;color:var(--muted);line-height:1.8}
+.err-box strong{color:var(--text)}
+
+/* ─── MAIN SHELL ─────────────────────────────────────────── */
+#app{flex:1;display:flex;flex-direction:column;overflow:hidden;padding-top:var(--safe-top)}
+
+/* ─── HEADER ─────────────────────────────────────────────── */
+.hdr{background:var(--bg);padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.hdr-row1{display:flex;align-items:center;justify-content:space-between}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.hdr-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--amber),#c47d0a);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.hdr-title{font-size:15px;font-weight:800;letter-spacing:-.3px}
+.hdr-sub{font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:1px}
+.hdr-actions{display:flex;gap:8px;align-items:center}
+.share-btn{background:var(--s2);border:1px solid var(--border);color:var(--text);border-radius:20px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:5px;transition:all .15s}
+.share-btn:active{transform:scale(.95)}
+.update-btn{background:var(--green);color:#000;border:none;border-radius:20px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:5px;transition:all .15s}
+.update-btn:active{transform:scale(.95)}
+.update-btn.spinning .spin-icon{animation:spin .8s linear infinite}
+
+/* ─── INSTALL BANNER ─────────────────────────────────────── */
+#install-banner{margin:10px 18px 0;background:linear-gradient(135deg,#16201a,#10160f);border:1px solid #1f3326;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.install-icon{width:34px;height:34px;border-radius:9px;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.install-text{flex:1;min-width:0}
+.install-title{font-size:12px;font-weight:700;color:var(--text)}
+.install-sub{font-size:10px;color:var(--muted);margin-top:1px;font-family:var(--mono)}
+.install-cta{background:var(--green);color:#000;border:none;border-radius:16px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);flex-shrink:0;white-space:nowrap}
+.install-cta:active{transform:scale(.95)}
+.install-dismiss{background:transparent;border:none;color:var(--dim);font-size:18px;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1}
+.ios-steps{display:flex;flex-direction:column;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid #1f3326}
+.ios-step{display:flex;align-items:center;gap:8px;font-size:11px;color:#9cb8a8}
+.ios-step-num{width:18px;height:18px;border-radius:50%;background:var(--green);color:#000;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)}
+.ios-icon-inline{display:inline-block;background:var(--s3);border-radius:4px;padding:1px 5px;font-family:var(--mono);font-size:10px;color:var(--text)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin-icon{display:inline-block}
+
+/* ─── MONTH PILLS ────────────────────────────────────────── */
+.month-pills{display:flex;gap:6px;padding:10px 18px 0;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+.month-pills::-webkit-scrollbar{display:none}
+.mpill{padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap;transition:all .15s;flex-shrink:0}
+.mpill.active{background:var(--text);color:#000;border-color:var(--text)}
+
+/* ─── SCROLL AREA ────────────────────────────────────────── */
+#scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+#scroll::-webkit-scrollbar{display:none}
+.content{padding:14px 14px calc(var(--safe-bottom) + 80px)}
+
+/* ─── BOTTOM NAV ─────────────────────────────────────────── */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:var(--s1);border-top:1px solid var(--border);display:flex;padding:8px 0 calc(var(--safe-bottom) + 6px);z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:opacity .15s;padding:4px 0}
+.bnav-item:active{opacity:.6}
+.bnav-icon{font-size:19px;line-height:1}
+.bnav-label{font-size:9px;font-weight:600;color:var(--dim);letter-spacing:.04em;text-transform:uppercase}
+.bnav-item.active .bnav-label{color:var(--green)}
+.bnav-item.active .bnav-icon{filter:drop-shadow(0 0 6px var(--green))}
+
+/* ─── CARDS ──────────────────────────────────────────────── */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:12px}
+.card-body{padding:16px}
+.card-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+
+/* ─── KPI GRID ───────────────────────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.kpi{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:14px;position:relative;overflow:hidden}
+.kpi.accent{background:linear-gradient(135deg,#1a1a1a,#111);border-color:var(--green)}
+.kpi.accent::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent)}
+.kpi-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.kpi-val{font-size:20px;font-weight:900;letter-spacing:-1px;font-family:var(--mono);color:var(--text);line-height:1}
+.kpi-val.green{color:var(--green)}
+.kpi-val.amber{color:var(--amber)}
+.kpi-val.red{color:var(--red)}
+.kpi-sub{font-size:10px;color:var(--dim);margin-top:4px;font-family:var(--mono)}
+
+/* ─── MONTH PROGRESS ─────────────────────────────────────── */
+.month-progress{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:12px}
+.mp-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.mp-label{font-size:12px;font-weight:700}
+.mp-proj{font-size:11px;font-family:var(--mono);color:var(--amber)}
+.mp-bar-track{height:6px;background:var(--s3);border-radius:3px;overflow:hidden}
+.mp-bar-fill{height:100%;border-radius:3px;background:var(--amber);transition:width .5s ease}
+.mp-meta{display:flex;justify-content:space-between;margin-top:5px;font-family:var(--mono);font-size:10px;color:var(--dim)}
+
+/* ─── CATEGORY BARS ──────────────────────────────────────── */
+.cat-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.cat-row:last-child{border-bottom:none}
+.cat-icon{font-size:18px;width:30px;text-align:center;flex-shrink:0}
+.cat-info{flex:1;min-width:0}
+.cat-name{font-size:13px;font-weight:600;margin-bottom:3px}
+.cat-bar-track{height:4px;background:var(--s3);border-radius:2px;overflow:hidden}
+.cat-bar-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.cat-amount{font-family:var(--mono);font-size:13px;font-weight:700;flex-shrink:0;text-align:right}
+.cat-pct{font-size:9px;color:var(--dim);font-family:var(--mono);text-align:right}
+
+/* ─── CHART ──────────────────────────────────────────────── */
+.chart-wrap{position:relative;height:180px}
+
+/* ─── TXN LIST ───────────────────────────────────────────── */
+.txn-row{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--s2);gap:12px}
+.txn-row:last-child{border-bottom:none}
+.txn-icon-wrap{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.txn-info{flex:1;min-width:0}
+.txn-merchant{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.txn-meta{display:flex;gap:6px;align-items:center;margin-top:2px}
+.txn-date{font-size:10px;color:var(--muted);font-family:var(--mono)}
+.txn-cat-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;letter-spacing:.03em}
+.txn-right{text-align:right;flex-shrink:0}
+.txn-amount{font-family:var(--mono);font-size:14px;font-weight:700}
+.txn-pct{font-size:9px;color:var(--dim);font-family:var(--mono)}
+.tag{font-size:8px;font-weight:800;padding:1px 5px;border-radius:4px;letter-spacing:.05em;flex-shrink:0}
+.tag-new{background:#14532d;color:var(--green)}
+.tag-tv{background:#1e1b4b;color:#a5b4fc}
+
+/* ─── COMPARE TABLE ──────────────────────────────────────── */
+.cmp-head{display:grid;grid-template-columns:1fr 1fr 1fr;padding:8px 12px;background:var(--s2);font-family:var(--mono);font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-radius:10px 10px 0 0}
+.cmp-row{display:grid;grid-template-columns:1fr 1fr 1fr;padding:10px 12px;border-bottom:1px solid var(--s2);align-items:center}
+.cmp-cat{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600}
+.cmp-val{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:right}
+.cmp-trend{font-family:var(--mono);font-size:11px;font-weight:700;text-align:right}
+
+/* ─── BUDGET ROWS ────────────────────────────────────────── */
+.budget-row{padding:12px 0;border-bottom:1px solid var(--border)}
+.budget-row:last-child{border-bottom:none}
+.bud-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.bud-name{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600}
+.bud-right{text-align:right}
+.bud-spent{font-family:var(--mono);font-size:13px;font-weight:700}
+.bud-limit{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.bud-track{height:5px;background:var(--s3);border-radius:3px;overflow:hidden;margin-bottom:4px}
+.bud-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.bud-foot{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--dim)}
+
+/* ─── INSIGHT CARDS ──────────────────────────────────────── */
+.insight-card{background:var(--s1);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px}
+.insight-inner{padding:14px;border-left:3px solid}
+.insight-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.insight-left{display:flex;align-items:center;gap:8px}
+.insight-title{font-size:13px;font-weight:700;line-height:1.3}
+.insight-type{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin-top:2px}
+.insight-body{font-size:12px;color:#999;line-height:1.65;margin-bottom:10px}
+.insight-action{background:var(--bg);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--dim);display:flex;gap:6px;align-items:flex-start}
+
+/* ─── UPDATE TOAST ───────────────────────────────────────── */
+#toast{position:fixed;top:calc(var(--safe-top) + 60px);left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:8px 16px;font-size:12px;font-weight:600;white-space:nowrap;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
+#toast.show{opacity:1}
+
+/* ─── SECTION LABEL ──────────────────────────────────────── */
+.section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin:16px 0 8px}
+
+/* ─── MONTH SUMMARY CARDS ───────────────────────────────── */
+.month-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.mcard{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:12px}
+.mcard-label{font-size:9px;color:var(--muted);font-family:var(--mono);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.mcard-val{font-size:16px;font-weight:900;font-family:var(--mono);letter-spacing:-1px}
+.mcard-sub{font-size:9px;color:var(--dim);margin-top:3px;font-family:var(--mono)}
+
+/* ─── EMPTY STATE ────────────────────────────────────────── */
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px}
+
+/* ─── ANIMATIONS ─────────────────────────────────────────── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .3s ease forwards}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-logo">noon<span>.</span>track</div>
+  <div class="splash-steps">
+    <div class="step-row" id="sp0"><div class="step-dot"></div>Connecting to Gmail…</div>
+    <div class="step-row" id="sp1"><div class="step-dot"></div>Fetching Mashreq alerts…</div>
+    <div class="step-row" id="sp2"><div class="step-dot"></div>Parsing transactions…</div>
+    <div class="step-row" id="sp3"><div class="step-dot"></div>Categorising with AI…</div>
+    <div class="step-row" id="sp4"><div class="step-dot"></div>Building dashboard…</div>
+  </div>
+  <div class="splash-bar-wrap"><div class="splash-bar" id="splash-bar"></div></div>
+  <div class="splash-sub" id="splash-sub">Initialising…</div>
+</div>
+
+<!-- ERROR -->
+<div id="error-screen">
+  <div style="font-size:36px">⚠️</div>
+  <h2>Could not load</h2>
+  <p id="err-msg">Something went wrong fetching your transactions.</p>
+  <div class="err-box">
+    <strong>To fix:</strong><br>
+    1. Open Claude.ai Settings<br>
+    2. Go to Connectors<br>
+    3. Make sure Gmail is connected<br>
+    4. Come back and tap Retry
+  </div>
+  <button class="update-btn" style="margin-top:8px" onclick="runUpdate()">↺ Retry</button>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-row1">
+      <div class="hdr-left">
+        <div class="hdr-icon">💳</div>
+        <div>
+          <div class="hdr-title">noon ••••1420</div>
+          <div class="hdr-sub" id="hdr-sub">Loading…</div>
+        </div>
+      </div>
+      <div class="hdr-actions">
+        <button class="share-btn" onclick="shareWhatsApp()">📤 Share</button>
+        <button class="update-btn" id="upd-btn" onclick="runUpdate()">
+          <span class="spin-icon">↺</span> Update
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- INSTALL BANNER -->
+  <div id="install-banner" style="display:none"></div>
+  <!-- MONTH TABS -->
+  <div class="month-pills" id="month-pills"></div>
+  <!-- SCROLL -->
+  <div id="scroll"><div class="content" id="content"></div></div>
+  <!-- BOTTOM NAV -->
+  <nav class="bnav" id="bnav">
+    <div class="bnav-item active" data-tab="home" onclick="switchTab('home',this)">
+      <div class="bnav-icon">◈</div><div class="bnav-label">Home</div>
+    </div>
+    <div class="bnav-item" data-tab="budget" onclick="switchTab('budget',this)">
+      <div class="bnav-icon">◎</div><div class="bnav-label">Budget</div>
+    </div>
+    <div class="bnav-item" data-tab="compare" onclick="switchTab('compare',this)">
+      <div class="bnav-icon">⇄</div><div class="bnav-label">Compare</div>
+    </div>
+    <div class="bnav-item" data-tab="ledger" onclick="switchTab('ledger',this)">
+      <div class="bnav-icon">≡</div><div class="bnav-label">All Txns</div>
+    </div>
+    <div class="bnav-item" data-tab="insights" onclick="switchTab('insights',this)">
+      <div class="bnav-icon">◉</div><div class="bnav-label">Insights</div>
+    </div>
+  </nav>
+</div>
+
+<script>
+// ─── HARD-CODED SEED DATA (Apr + May + Jun 1-20) ─────────────────────────────
+// Updated 20 Jun 2026 — latest balance AED 38,046.48
+const SEED = [
+  // JUN 2026 — NEW ✦ (since 17 Jun refresh)
+  {date:"2026-06-20",a:70.12,  m:"New W Mart Supermarket",  c:"Groceries",    n:true},
+  {date:"2026-06-20",a:18.31,  m:"Shaklan 7 Supermarket",   c:"Groceries",    n:true},
+  {date:"2026-06-19",a:9.98,   m:"Shaklan 7 Supermarket",   c:"Groceries",    n:true},
+  {date:"2026-06-18",a:2.00,   m:"Shaklan 7 Supermarket",   c:"Groceries",    n:true},
+  {date:"2026-06-17",a:12.83,  m:"Shaklan 7 Supermarket",   c:"Groceries",    n:true},
+  {date:"2026-06-17",a:1.73,   m:"New W Mart Supermarket",  c:"Groceries",    n:true},
+  // JUN 2026 (earlier in month)
+  {date:"2026-06-16",a:44.00,  m:"DXBeyond LLC",            c:"Utilities",    n:false},
+  {date:"2026-06-16",a:50.00,  m:"Al Ain Food & Beverages", c:"Groceries",    n:false},
+  {date:"2026-06-15",a:22.25,  m:"Seif Sabet Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-06-15",a:26.25,  m:"Bahart Food House",       c:"Dining",       n:false},
+  {date:"2026-06-15",a:11.00,  m:"Bhavna Vegetarian Delu",  c:"Dining",       n:false},
+  {date:"2026-06-15",a:7.48,   m:"Every Night Center",      c:"Groceries",    n:false},
+  {date:"2026-06-15",a:3.00,   m:"Madhoor Supermarket",     c:"Groceries",    n:false},
+  {date:"2026-06-15",a:15.24,  m:"Shaklan 7 Supermarket",   c:"Groceries",    n:false},
+  {date:"2026-06-14",a:19.00,  m:"Tandoor Palace (Ajman)",  c:"Dining",       n:false},
+  {date:"2026-06-14",a:3.50,   m:"Shaklan 7 Supermarket",   c:"Groceries",    n:false},
+  {date:"2026-06-13",a:21.32,  m:"Shaklan 7 Supermarket",   c:"Groceries",    n:false},
+  {date:"2026-06-13",a:37.26,  m:"New W Mart Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-06-10",a:9.25,   m:"Shaklan 7 Supermarket",   c:"Groceries",    n:false},
+  {date:"2026-06-10",a:7.25,   m:"Shaklan 7 Supermarket",   c:"Groceries",    n:false},
+  {date:"2026-06-09",a:13.93,  m:"Noon (Online)",           c:"Shopping",     n:false},
+  {date:"2026-06-08",a:406.71, m:"Smart Dubai Government",  c:"Utilities",    n:false},
+  {date:"2026-06-08",a:244.65, m:"Empower (District Cooling)",c:"Utilities",  n:false},
+  {date:"2026-06-07",a:19.92,  m:"Shaklan 7 Supermarket",   c:"Groceries",    n:false},
+  {date:"2026-06-06",a:55.70,  m:"New W Mart Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-06-06",a:23.85,  m:"New W Mart Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-06-06",a:7.75,   m:"Shaklan 7 Supermarket",   c:"Groceries",    n:false},
+  {date:"2026-06-04",a:2.00,   m:"Shaklan 7 Supermarket",   c:"Groceries",    n:false},
+  {date:"2026-06-04",a:1.50,   m:"Shaklan 7 Supermarket",   c:"Groceries",    n:false},
+  {date:"2026-06-01",a:10.64,  m:"Noon Minutes",            c:"Dining",       n:false},
+  {date:"2026-06-01",a:7.50,   m:"New W Mart Supermarket",  c:"Groceries",    n:false},
+  // MAY 2026
+  {date:"2026-05-31",a:25.00,  m:"Bizzare Gents Saloon",   c:"Personal Care",n:false},
+  {date:"2026-05-31",a:16.00,  m:"Tandoor Palace",         c:"Dining",       n:false},
+  {date:"2026-05-31",a:17.50,  m:"New W Mart Supermarket", c:"Groceries",    n:false},
+  {date:"2026-05-31",a:10.41,  m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-31",a:6.49,   m:"New W Mart Supermarket", c:"Groceries",    n:false},
+  {date:"2026-05-30",a:182.68, m:"New W Mart Supermarket", c:"Groceries",    n:false},
+  {date:"2026-05-30",a:10.00,  m:"FMart Express",          c:"Groceries",    n:false},
+  {date:"2026-05-30",a:7.25,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-28",a:16.00,  m:"Barsha Gate Restaurant", c:"Dining",       n:false},
+  {date:"2026-05-28",a:3.50,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-28",a:2.00,   m:"McDonald's (MOE)",       c:"Dining",       n:false},
+  {date:"2026-05-27",a:7.25,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-26",a:1559.00,m:"Noon — TV Purchase",     c:"Electronics",  n:false, tv:true},
+  {date:"2026-05-26",a:3.50,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-24",a:44.40,  m:"H&M Hypermarket",        c:"Groceries",    n:false},
+  {date:"2026-05-24",a:4.40,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-23",a:73.65,  m:"New W Mart Supermarket", c:"Groceries",    n:false},
+  {date:"2026-05-23",a:15.24,  m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-21",a:18.00,  m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-21",a:7.25,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-20",a:21.16,  m:"Hafsa Pharmacy",         c:"Medical",      n:false},
+  {date:"2026-05-20",a:12.00,  m:"Dr Ismail Polyclinic",   c:"Medical",      n:false},
+  {date:"2026-05-20",a:1.00,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-19",a:250.00, m:"I Care Discovery Garden",c:"Medical",      n:false},
+  {date:"2026-05-19",a:149.00, m:"I Care Discovery Garden",c:"Medical",      n:false},
+  {date:"2026-05-19",a:6.99,   m:"Flavors Supermarket",    c:"Groceries",    n:false},
+  {date:"2026-05-19",a:6.25,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-18",a:5.30,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-17",a:166.95, m:"du Telecom",             c:"Utilities",    n:false},
+  {date:"2026-05-17",a:24.95,  m:"New W Mart Supermarket", c:"Groceries",    n:false},
+  {date:"2026-05-17",a:7.25,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-17",a:2.00,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-16",a:47.39,  m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-16",a:25.14,  m:"H&M Hypermarket",        c:"Groceries",    n:false},
+  {date:"2026-05-16",a:11.20,  m:"New W Mart Supermarket", c:"Groceries",    n:false},
+  {date:"2026-05-16",a:4.00,   m:"McDonald's",             c:"Dining",       n:false},
+  {date:"2026-05-16",a:2.00,   m:"McDonald's",             c:"Dining",       n:false},
+  {date:"2026-05-15",a:1.32,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-12",a:6.00,   m:"Burger Spot Restaurant", c:"Dining",       n:false},
+  {date:"2026-05-12",a:5.50,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-11",a:3.50,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-10",a:16.00,  m:"Tandoor Palace",         c:"Dining",       n:false},
+  {date:"2026-05-10",a:11.76,  m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-10",a:8.49,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-10",a:6.75,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-09",a:91.24,  m:"H&M Hypermarket",        c:"Groceries",    n:false},
+  {date:"2026-05-07",a:2.50,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-05",a:4.50,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-04",a:50.00,  m:"Al Ain Food & Beverages",c:"Groceries",    n:false},
+  {date:"2026-05-03",a:79.00,  m:"H&M Hypermarket",        c:"Groceries",    n:false},
+  {date:"2026-05-03",a:37.99,  m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-05-02",a:18.00,  m:"Dwwarikadish Restaurant",c:"Dining",       n:false},
+  {date:"2026-05-02",a:11.50,  m:"Al Rajwa Restaurant",    c:"Dining",       n:false},
+  {date:"2026-05-01",a:14.92,  m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  // APR 2026
+  {date:"2026-04-30",a:5.00,   m:"T Choithram & Sons",     c:"Groceries",    n:false},
+  {date:"2026-04-29",a:5.00,   m:"Puranmal Sweets",        c:"Dining",       n:false},
+  {date:"2026-04-28",a:7.19,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-27",a:28.00,  m:"Noon Food",              c:"Dining",       n:false},
+  {date:"2026-04-27",a:5.75,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-27",a:2.00,   m:"Black Panda",            c:"Groceries",    n:false},
+  {date:"2026-04-26",a:116.50, m:"H&M Hypermarket",        c:"Groceries",    n:false},
+  {date:"2026-04-26",a:24.59,  m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-25",a:147.00, m:"Udrive Rent A Car",      c:"Transport",    n:false},
+  {date:"2026-04-25",a:60.00,  m:"Global Village Dubai",   c:"Leisure",      n:false},
+  {date:"2026-04-25",a:30.00,  m:"Noqodi GV AME",          c:"Leisure",      n:false},
+  {date:"2026-04-25",a:13.00,  m:"Nur Jamil Restaurant",   c:"Dining",       n:false},
+  {date:"2026-04-25",a:9.45,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-25",a:4.50,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-25",a:4.00,   m:"McDonald's",             c:"Dining",       n:false},
+  {date:"2026-04-25",a:1.50,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-24",a:13.00,  m:"Nur Jamil Restaurant",   c:"Dining",       n:false},
+  {date:"2026-04-24",a:4.50,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-23",a:2.45,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-22",a:8.60,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-21",a:7.95,   m:"New W Mart Supermarket", c:"Groceries",    n:false},
+  {date:"2026-04-21",a:4.95,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-20",a:25.95,  m:"New W Mart Supermarket", c:"Groceries",    n:false},
+  {date:"2026-04-20",a:7.00,   m:"Grill Spot Restaurant",  c:"Dining",       n:false},
+  {date:"2026-04-20",a:7.00,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-19",a:50.00,  m:"Al Ain Food & Beverages",c:"Groceries",    n:false},
+  {date:"2026-04-19",a:45.00,  m:"Bizzare Gents Saloon",   c:"Personal Care",n:false},
+  {date:"2026-04-19",a:24.27,  m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-19",a:23.36,  m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-19",a:13.00,  m:"Occasions Confectionary",c:"Dining",       n:false},
+  {date:"2026-04-18",a:169.62, m:"H&M Hypermarket",        c:"Groceries",    n:false},
+  {date:"2026-04-17",a:26.05,  m:"Noon Minutes",           c:"Dining",       n:false},
+  {date:"2026-04-16",a:21.50,  m:"Udrive Rent A Car",      c:"Transport",    n:false},
+  {date:"2026-04-16",a:9.25,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-16",a:8.42,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-15",a:60.00,  m:"Dubai Butterfly Garden", c:"Leisure",      n:false},
+  {date:"2026-04-15",a:60.00,  m:"Dubai Miracle Garden",   c:"Leisure",      n:false},
+  {date:"2026-04-15",a:4.00,   m:"McDonald's",             c:"Dining",       n:false},
+  {date:"2026-04-15",a:3.00,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-14",a:143.00, m:"Udrive Rent A Car",      c:"Transport",    n:false},
+  {date:"2026-04-14",a:3.50,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-13",a:14.85,  m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-13",a:7.50,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-13",a:3.71,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-13",a:2.00,   m:"Black Panda",            c:"Groceries",    n:false},
+  {date:"2026-04-12",a:15.00,  m:"Corn & Chestnut",        c:"Dining",       n:false},
+  {date:"2026-04-12",a:12.00,  m:"Dubai Taxi",             c:"Transport",    n:false},
+  {date:"2026-04-12",a:10.99,  m:"Day to Day General Trd", c:"Groceries",    n:false},
+  {date:"2026-04-12",a:3.00,   m:"Babaram Restaurant",     c:"Dining",       n:false},
+  {date:"2026-04-11",a:10.78,  m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-11",a:2.99,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-09",a:16.66,  m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-09",a:6.00,   m:"Burger Spot Restaurant", c:"Dining",       n:false},
+  {date:"2026-04-08",a:41.30,  m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-06",a:20.00,  m:"Foodies Delights",       c:"Dining",       n:false},
+  {date:"2026-04-05",a:41.61,  m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-04",a:87.49,  m:"Day to Day Hypermarket", c:"Groceries",    n:false},
+  {date:"2026-04-04",a:18.00,  m:"Vasanta Bhavan",         c:"Dining",       n:false},
+  {date:"2026-04-04",a:2.00,   m:"Black Panda",            c:"Groceries",    n:false},
+  {date:"2026-04-03",a:32.60,  m:"Noon Minutes",           c:"Dining",       n:false},
+  {date:"2026-04-03",a:10.00,  m:"Foodies Delights",       c:"Dining",       n:false},
+  {date:"2026-04-03",a:4.75,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-03",a:4.11,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+  {date:"2026-04-02",a:28.90,  m:"New W Mart Supermarket", c:"Groceries",    n:false},
+  {date:"2026-04-02",a:6.75,   m:"Shaklan 7 Supermarket",  c:"Groceries",    n:false},
+];
+
+const CATS = {
+  Groceries:      {color:"#00d37f",icon:"🛒"},
+  Dining:         {color:"#f5a623",icon:"🍽️"},
+  Utilities:      {color:"#4d9fff",icon:"📡"},
+  Shopping:       {color:"#a855f7",icon:"🛍️"},
+  Transport:      {color:"#38bdf8",icon:"🚖"},
+  Leisure:        {color:"#ec4899",icon:"🎡"},
+  Medical:        {color:"#ff4d4d",icon:"🏥"},
+  "Personal Care":{color:"#c084fc",icon:"💈"},
+  Electronics:    {color:"#818cf8",icon:"📺"},
+};
+
+const BUDGET = {Groceries:700,Dining:200,Transport:200,Leisure:150,Medical:100,"Personal Care":80,Utilities:200};
+const fmt  = n=>n.toLocaleString("en-AE",{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtK = n=>n>=1000?`${(n/1000).toFixed(1)}k`:n.toFixed(0);
+
+// ─── STATE ──────────────────────────────────────────────────────────────
+let TXN = [...SEED];
+let activeMon = "2026-06";
+let activeTab = "home";
+let chartInst = null;
+
+// ─── SPLASH HELPERS ─────────────────────────────────────────────────────
+const setStep = (i,s)=>{const e=document.getElementById(`sp${i}`);if(e){e.className=`step-row ${s}`;}}
+const setBar  = p=>{document.getElementById("splash-bar").style.width=p+"%";}
+const setSub  = t=>{document.getElementById("splash-sub").textContent=t;}
+
+// ─── INIT ────────────────────────────────────────────────────────────────
+async function init(){
+  // Skip live fetch on first load — use seed data
+  setTimeout(()=>{
+    setStep(0,"done");setStep(1,"done");setStep(2,"done");setStep(3,"done");setStep(4,"active");
+    setBar(90);setSub("Building dashboard…");
+    setTimeout(()=>{
+      document.getElementById("splash").classList.add("out");
+      document.getElementById("app").style.display="flex";
+      buildApp();
+      setBar(100);setStep(4,"done");
+
+      // If we just came back from Google OAuth, auto-trigger a live update
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("auth") === "success") {
+        history.replaceState({}, "", window.location.pathname);
+        showToast("✓ Gmail connected — syncing…", "#00d37f");
+        setTimeout(()=>runUpdate(), 600);
+      }
+    },500);
+  },800);
+}
+
+// ─── LIVE UPDATE via Anthropic API + Gmail MCP ────────────────────────────
+async function runUpdate(){
+  const btn = document.getElementById("upd-btn");
+  btn.classList.add("spinning");
+  btn.innerHTML='<span class="spin-icon spin-anim">↺</span> Updating…';
+  btn.disabled=true;
+  showToast("Fetching latest from Gmail…");
+
+  try{
+    const res = await fetch("/api/refresh", { method:"POST" });
+
+    if(res.status===401){
+      // Not connected to Gmail yet — kick off OAuth flow
+      showToast("Connect Gmail to enable live updates…","#f5a623");
+      setTimeout(()=>{ window.location.href = "/api/auth-start"; }, 1200);
+      return;
+    }
+
+    if(!res.ok){
+      const errBody = await res.json().catch(()=>({}));
+      throw new Error(errBody.error || `Server error ${res.status}`);
+    }
+
+    const data = await res.json();
+    const parsed = data.transactions;
+    if(!Array.isArray(parsed)||parsed.length===0) throw new Error("No transactions returned");
+
+    // Merge with seed — deduplicate by date+amount+merchant
+    const existing=new Set(SEED.map(t=>`${t.date}|${t.a}|${t.m}`));
+    const newTxns=parsed.filter(t=>!existing.has(`${t.date}|${t.amount}|${t.merchant}`))
+      .map(t=>({date:t.date,a:parseFloat(t.amount),m:t.merchant,c:t.cat||"Other",n:true}));
+
+    TXN=[...newTxns,...SEED].sort((a,b)=>b.date.localeCompare(a.date));
+    const ts=new Date(data.fetchedAt||Date.now()).toLocaleString("en-AE",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+    document.getElementById("hdr-sub").textContent=`${TXN.length} txns · Updated ${ts}`;
+    localStorage.setItem("noonTrackerLastSync", ts);
+    buildApp();
+    showToast(newTxns.length>0 ? `✓ ${newTxns.length} new transactions added` : "✓ Already up to date","#00d37f");
+  }catch(e){
+    console.error(e);
+    showToast("Update failed — using cached data","#ff4d4d");
+  }finally{
+    btn.classList.remove("spinning");
+    btn.innerHTML='<span class="spin-icon">↺</span> Update';
+    btn.disabled=false;
+  }
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────
+function showToast(msg,color="#f5f5f5"){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.style.color=color;t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2500);
+}
+
+// ─── SHARE via WhatsApp ───────────────────────────────────────────────────
+function shareWhatsApp(){
+  const url=encodeURIComponent(window.location.href);
+  const msg=encodeURIComponent(`💳 My Mashreq Noon Card budget tracker\n\nOpen this to see my live spending dashboard — tap Update to refresh.\n\n${window.location.href}`);
+  window.open(`https://wa.me/?text=${msg}`,"_blank");
+}
+
+// ─── DERIVED DATA ─────────────────────────────────────────────────────────
+function byMonth(m){return TXN.filter(t=>t.date.startsWith(m)&&!t.tv);}
+function total(arr){return arr.reduce((s,t)=>s+t.a,0);}
+function catTotals(arr){
+  const m={};arr.forEach(t=>{m[t.c]=(m[t.c]||0)+t.a;});
+  return Object.entries(m).map(([k,v])=>({name:k,val:+v.toFixed(2),color:CATS[k]?.color||"#666"})).sort((a,b)=>b.val-a.val);
+}
+
+// ─── BUILD APP ────────────────────────────────────────────────────────────
+function buildApp(){
+  buildMonthPills();
+  renderTab();
+  document.getElementById("hdr-sub").textContent=
+    `${TXN.length} txns · Updated 20 Jun 2026`;
+}
+
+function buildMonthPills(){
+  const months=["2026-04","2026-05","2026-06","All"];
+  const labels={"2026-04":"April","2026-05":"May","2026-06":"June","All":"All"};
+  const el=document.getElementById("month-pills");
+  el.innerHTML=months.map(m=>`
+    <div class="mpill${activeMon===m?" active":""}" onclick="setMon('${m}')">${labels[m]}</div>
+  `).join("");
+}
+
+function setMon(m){activeMon=m;buildMonthPills();renderTab();}
+function switchTab(t,el){
+  activeTab=t;
+  document.querySelectorAll(".bnav-item").forEach(x=>x.classList.remove("active"));
+  el.classList.add("active");
+  document.getElementById("scroll").scrollTop=0;
+  renderTab();
+}
+
+function renderTab(){
+  if(activeTab==="home")     renderHome();
+  else if(activeTab==="budget")   renderBudget();
+  else if(activeTab==="compare")  renderCompare();
+  else if(activeTab==="ledger")   renderLedger();
+  else if(activeTab==="insights") renderInsights();
+}
+
+// ═══════════════════════════════ HOME ════════════════════════════════════
+function renderHome(){
+  const aprT=total(byMonth("2026-04"));
+  const mayT=total(byMonth("2026-05"));
+  const junArr=byMonth("2026-06");
+  const junT=total(junArr);
+  const JUN_DAY=20, JUN_DAYS=30;
+  const junProj=junT/JUN_DAY*JUN_DAYS;
+
+  const arr=activeMon==="All"?TXN.filter(t=>!t.tv):byMonth(activeMon);
+  const tot=total(arr);
+  const cats=catTotals(arr);
+  const maxCat=cats[0]?.val||1;
+  const newCount=TXN.filter(t=>t.n).length;
+
+  let html=`
+    <div class="section-label">📅 Month Overview</div>
+    <div class="month-cards">
+      <div class="mcard">
+        <div class="mcard-label">April</div>
+        <div class="mcard-val" style="color:#a855f7">AED ${fmtK(aprT)}</div>
+        <div class="mcard-sub">Full month</div>
+      </div>
+      <div class="mcard">
+        <div class="mcard-label">May</div>
+        <div class="mcard-val" style="color:#00d37f">AED ${fmtK(mayT)}</div>
+        <div class="mcard-sub">Complete ✓</div>
+      </div>
+      <div class="mcard">
+        <div class="mcard-label">June</div>
+        <div class="mcard-val" style="color:#f5a623">AED ${fmtK(junT)}</div>
+        <div class="mcard-sub">Day ${JUN_DAY}/${JUN_DAYS}</div>
+      </div>
+    </div>`;
+
+  // June progress bar
+  if(activeMon==="2026-06"||activeMon==="All"){
+    const fillPct=Math.min((JUN_DAY/JUN_DAYS)*100,100);
+    const projColor=junProj<mayT?"var(--green)":"var(--amber)";
+    html+=`
+    <div class="month-progress">
+      <div class="mp-row">
+        <div class="mp-label">June Progress</div>
+        <div class="mp-proj" style="color:${projColor}">Proj. AED ${fmt(junProj)}</div>
+      </div>
+      <div class="mp-bar-track"><div class="mp-bar-fill" style="width:${fillPct}%"></div></div>
+      <div class="mp-meta">
+        <span>Day ${JUN_DAY} of ${JUN_DAYS}</span>
+        <span>AED ${fmt(junT/JUN_DAY)}/day avg</span>
+      </div>
+    </div>`;
+  }
+
+  // KPIs
+  html+=`
+    <div class="kpi-grid">
+      <div class="kpi accent">
+        <div class="kpi-label">Total Spent</div>
+        <div class="kpi-val green">AED ${fmtK(tot)}</div>
+        <div class="kpi-sub">${arr.length} transactions</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Avg / Transaction</div>
+        <div class="kpi-val amber">AED ${fmtK(arr.length?tot/arr.length:0)}</div>
+        <div class="kpi-sub">per txn</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Largest Spend</div>
+        <div class="kpi-val red">AED ${fmtK(Math.max(...arr.map(t=>t.a),0))}</div>
+        <div class="kpi-sub">single txn</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">New Today</div>
+        <div class="kpi-val" style="color:var(--blue)">${newCount}</div>
+        <div class="kpi-sub">transactions</div>
+      </div>
+    </div>`;
+
+  // Category breakdown
+  html+=`<div class="card"><div class="card-body">
+    <div class="card-title">Spend by Category</div>`;
+  cats.forEach(c=>{
+    const pct=(c.val/tot*100).toFixed(0);
+    const barW=(c.val/maxCat*100).toFixed(1);
+    html+=`
+    <div class="cat-row">
+      <div class="cat-icon">${CATS[c.name]?.icon||"📦"}</div>
+      <div class="cat-info">
+        <div class="cat-name">${c.name}</div>
+        <div class="cat-bar-track">
+          <div class="cat-bar-fill" style="width:${barW}%;background:${c.color}"></div>
+        </div>
+      </div>
+      <div>
+        <div class="cat-amount" style="color:${c.color}">AED ${fmt(c.val)}</div>
+        <div class="cat-pct">${pct}%</div>
+      </div>
+    </div>`;
+  });
+  html+=`</div></div>`;
+
+  // Recent transactions (last 8)
+  html+=`<div class="section-label">⚡ Recent Transactions</div><div class="card"><div class="card-body">`;
+  [...arr].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8).forEach(t=>{
+    const c=CATS[t.c]||{color:"#666",icon:"📦"};
+    const d=new Date(t.date).toLocaleDateString("en-AE",{day:"numeric",month:"short"});
+    html+=`
+    <div class="txn-row">
+      <div class="txn-icon-wrap" style="background:${c.color}18">${c.icon}</div>
+      <div class="txn-info">
+        <div class="txn-merchant">${t.m}</div>
+        <div class="txn-meta">
+          <span class="txn-date">${d}</span>
+          <span class="txn-cat-badge" style="background:${c.color}18;color:${c.color}">${t.c}</span>
+          ${t.n?'<span class="tag tag-new">NEW</span>':""}
+          ${t.tv?'<span class="tag tag-tv">TV</span>':""}
+        </div>
+      </div>
+      <div class="txn-right">
+        <div class="txn-amount" style="color:${t.a>=200?'var(--amber)':'var(--text)'}">${fmt(t.a)}</div>
+        <div class="txn-pct">${(t.a/tot*100).toFixed(1)}%</div>
+      </div>
+    </div>`;
+  });
+  html+=`</div></div>`;
+  document.getElementById("content").innerHTML=html;
+}
+
+// ═══════════════════════════════ BUDGET ══════════════════════════════════
+function renderBudget(){
+  const JUN_DAY=20,JUN_DAYS=30;
+  const junArr=byMonth("2026-06");
+  const catMap={};
+  junArr.forEach(t=>{catMap[t.c]=(catMap[t.c]||0)+t.a;});
+  const totalBudget=Object.values(BUDGET).reduce((s,v)=>s+v,0);
+  const totalSpent=Object.keys(BUDGET).reduce((s,c)=>s+(catMap[c]||0),0);
+  const totalProj=totalSpent/JUN_DAY*JUN_DAYS;
+
+  let html=`
+    <div class="section-label">June 2026 Budget Tracker · Day ${JUN_DAY}/${JUN_DAYS}</div>
+    <div class="kpi-grid">
+      <div class="kpi accent">
+        <div class="kpi-label">Monthly Budget</div>
+        <div class="kpi-val">AED ${fmtK(totalBudget)}</div>
+        <div class="kpi-sub">your target</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Spent (Day ${JUN_DAY})</div>
+        <div class="kpi-val ${totalSpent>totalBudget?"red":"green"}">AED ${fmtK(totalSpent)}</div>
+        <div class="kpi-sub">${(totalSpent/totalBudget*100).toFixed(0)}% of budget</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Projected</div>
+        <div class="kpi-val ${totalProj>totalBudget?"red":"amber"}">AED ${fmtK(totalProj)}</div>
+        <div class="kpi-sub">full month est.</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Remaining Est.</div>
+        <div class="kpi-val ${totalBudget-totalProj<0?"red":"green"}">AED ${fmtK(Math.abs(totalBudget-totalProj))}</div>
+        <div class="kpi-sub">${totalBudget-totalProj<0?"over":"under"} budget</div>
+      </div>
+    </div>
+    <div class="card"><div class="card-body">
+      <div class="card-title">Category Budget vs Actual</div>`;
+
+  const rows=Object.entries(BUDGET).map(([cat,budget])=>{
+    const spent=catMap[cat]||0;
+    const pct=(spent/budget)*100;
+    const proj=spent/JUN_DAY*JUN_DAYS;
+    return {cat,budget,spent:+spent.toFixed(2),pct,proj,over:spent>budget};
+  }).sort((a,b)=>b.pct-a.pct);
+
+  rows.forEach(r=>{
+    const c=CATS[r.cat]||{color:"#666",icon:"📦"};
+    const fillColor=r.over?"var(--red)":r.pct>70?`var(--amber)`:c.color;
+    const fillW=Math.min(r.pct,100).toFixed(1);
+    html+=`
+    <div class="budget-row">
+      <div class="bud-top">
+        <div class="bud-name"><span>${c.icon}</span>${r.cat}</div>
+        <div class="bud-right">
+          <div class="bud-spent" style="color:${r.over?"var(--red)":"var(--text)"}">AED ${fmt(r.spent)}</div>
+          <div class="bud-limit">/ AED ${fmt(r.budget)}</div>
+        </div>
+      </div>
+      <div class="bud-track">
+        <div class="bud-fill" style="width:${fillW}%;background:${fillColor}"></div>
+      </div>
+      <div class="bud-foot">
+        <span>${r.pct.toFixed(0)}% used · proj. AED ${fmt(r.proj)}</span>
+        <span style="color:${r.proj>r.budget?"var(--red)":"var(--green)"}">${r.proj>r.budget?"▲ over":"✓ ok"}</span>
+      </div>
+    </div>`;
+  });
+  html+=`</div></div>`;
+  html+=`<div style="background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:11px;color:var(--muted);display:flex;gap:8px;align-items:center;margin-bottom:12px">
+    <span>📺</span><span>TV purchase AED 1,559 is a capital item — <strong style="color:var(--text)">excluded from budget tracking</strong> above.</span>
+  </div>`;
+  document.getElementById("content").innerHTML=html;
+}
+
+// ═══════════════════════════════ COMPARE ═════════════════════════════════
+function renderCompare(){
+  const aprT=total(byMonth("2026-04"));
+  const mayT=total(byMonth("2026-05"));
+  const junArr=byMonth("2026-06");
+  const junT=total(junArr);
+  const JUN_DAY=20,JUN_DAYS=30;
+  const junProj=junT/JUN_DAY*JUN_DAYS;
+
+  const cats=["Groceries","Dining","Utilities","Transport","Leisure","Medical","Personal Care"];
+
+  const sum=(month,cat)=>byMonth(month).filter(t=>t.c===cat).reduce((s,t)=>s+t.a,0);
+
+  let html=`
+    <div class="section-label">3-Month Comparison · Lifestyle Spend</div>
+    <div class="month-cards">
+      <div class="mcard"><div class="mcard-label">April</div><div class="mcard-val" style="color:#a855f7">AED ${fmtK(aprT)}</div><div class="mcard-sub">Final</div></div>
+      <div class="mcard"><div class="mcard-label">May</div><div class="mcard-val" style="color:#00d37f">AED ${fmtK(mayT)}</div><div class="mcard-sub">Final</div></div>
+      <div class="mcard"><div class="mcard-label">June</div><div class="mcard-val" style="color:#f5a623">AED ${fmtK(junT)}</div><div class="mcard-sub">Proj. AED ${fmtK(junProj)}</div></div>
+    </div>`;
+
+  // Trend indicator
+  const trendColor=junProj<mayT?"var(--green)":"var(--red)";
+  html+=`
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:12px;color:var(--muted)">June projected vs May final</span>
+      <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:${trendColor}">
+        ${junProj<mayT?"▼":"▲"} AED ${fmtK(Math.abs(junProj-mayT))}
+      </span>
+    </div>`;
+
+  // Table
+  html+=`<div class="card"><div class="card-body"><div class="card-title">By Category</div>
+    <div class="cmp-head"><div>Category</div><div style="text-align:right">Apr</div><div style="text-align:right">May→Jun</div></div>`;
+
+  cats.forEach(cat=>{
+    const a=sum("2026-04",cat),m=sum("2026-05",cat),j=sum("2026-06",cat);
+    if(a===0&&m===0&&j===0) return;
+    const proj=j/JUN_DAY*JUN_DAYS;
+    const pct=m?((proj-m)/m*100):0;
+    const c=CATS[cat]||{color:"#666",icon:"📦"};
+    html+=`
+    <div class="cmp-row">
+      <div class="cmp-cat"><span>${c.icon}</span>${cat}</div>
+      <div class="cmp-val">${fmt(a)}</div>
+      <div class="cmp-trend" style="color:${proj>m?"var(--red)":"var(--green)"}">
+        ${j===0?"—":(proj>m?"▲":"▼")+Math.abs(pct).toFixed(0)+"%"}
+      </div>
+    </div>`;
+  });
+  html+=`</div></div>`;
+
+  // Visual bar comparison for top categories
+  html+=`<div class="section-label">Top Categories Visual</div><div class="card"><div class="card-body">`;
+  const maxVal=Math.max(aprT,mayT,junProj);
+  [
+    {label:"April",val:aprT,color:"#a855f7"},
+    {label:"May",val:mayT,color:"#00d37f"},
+    {label:"June proj.",val:junProj,color:"#f5a623"},
+  ].forEach(r=>{
+    html+=`
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:12px;font-weight:600">${r.label}</span>
+        <span style="font-family:var(--mono);font-size:12px;color:${r.color}">AED ${fmt(r.val)}</span>
+      </div>
+      <div style="height:6px;background:var(--s3);border-radius:3px;overflow:hidden">
+        <div style="height:100%;border-radius:3px;background:${r.color};width:${(r.val/maxVal*100).toFixed(1)}%;transition:width .5s ease"></div>
+      </div>
+    </div>`;
+  });
+  html+=`</div></div>`;
+  document.getElementById("content").innerHTML=html;
+}
+
+// ═══════════════════════════════ LEDGER ══════════════════════════════════
+function renderLedger(){
+  const arr=activeMon==="All"?TXN:TXN.filter(t=>t.date.startsWith(activeMon));
+  const sorted=[...arr].sort((a,b)=>b.date.localeCompare(a.date));
+  const tot=total(arr);
+
+  let html=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700">${sorted.length} transactions</div>
+      <div style="font-family:var(--mono);font-size:13px;color:var(--amber);font-weight:700">AED ${fmt(tot)}</div>
+    </div>
+    <div class="card"><div class="card-body">`;
+
+  sorted.forEach(t=>{
+    const c=CATS[t.c]||{color:"#666",icon:"📦"};
+    const d=new Date(t.date).toLocaleDateString("en-AE",{weekday:"short",day:"numeric",month:"short"});
+    html+=`
+    <div class="txn-row">
+      <div class="txn-icon-wrap" style="background:${c.color}18">${c.icon}</div>
+      <div class="txn-info">
+        <div class="txn-merchant">${t.m}</div>
+        <div class="txn-meta">
+          <span class="txn-date">${d}</span>
+          <span class="txn-cat-badge" style="background:${c.color}18;color:${c.color}">${t.c}</span>
+          ${t.n?'<span class="tag tag-new">NEW</span>':""}
+          ${t.tv?'<span class="tag tag-tv">TV</span>':""}
+        </div>
+      </div>
+      <div class="txn-right">
+        <div class="txn-amount" style="color:${t.tv?"#818cf8":t.a>=100?"var(--amber)":"var(--text)"}">${fmt(t.a)}</div>
+        <div class="txn-pct">${tot>0?(t.a/tot*100).toFixed(1):0}%</div>
+      </div>
+    </div>`;
+  });
+  html+=`</div></div>`;
+  document.getElementById("content").innerHTML=html;
+}
+
+// ═══════════════════════════════ INSIGHTS ════════════════════════════════
+function renderInsights(){
+  const aprT=total(byMonth("2026-04"));
+  const mayT=total(byMonth("2026-05"));
+  const junArr=byMonth("2026-06");
+  const junT=total(junArr);
+  const JUN_DAY=20;
+  const junProj=junT/JUN_DAY*30;
+
+  const insightData=[
+    {
+      color:"#4d9fff",icon:"💰",type:"JUNE UPDATE",
+      title:`June tracking AED ${fmt(junProj)} projected`,
+      body:`Day 17 spend: AED ${fmt(junT)} · AED ${fmt(junT/JUN_DAY)}/day avg. Big utility bills hit Jun 8 — Empower AED 244.65 + Smart Dubai Gov AED 406.71 = AED 651.36 in one day. These are one-time annual/semi-annual district cooling + govt fees. Without those, Jun lifestyle is very controlled.`,
+      action:"Flag utilities as annual payments — don't panic at June total"
+    },
+    {
+      color:"#ff4d4d",icon:"📡",type:"ALERT",
+      title:"Jun 8: AED 651 in government bills",
+      body:`Smart Dubai Government AED 406.71 + Empower AED 244.65 on the same day. These appear to be district cooling / municipality fees — likely semi-annual. They inflate June's utility budget massively. Budget AED 100/month (AED 1,200/year buffer) for these.`,
+      action:"Add AED 100/month 'Govt Fees' buffer to your budget"
+    },
+    {
+      color:"#00d37f",icon:"✅",type:"POSITIVE",
+      title:`May was your best month — AED ${fmt(mayT)}`,
+      body:`Complete May: AED ${fmt(mayT)} across lifestyle spending. Zero transport (AED 0 vs AED 180 April), zero food delivery, dining down 60%. This is your benchmark. June projected AED ${fmt(junProj)} is ${junProj>mayT?`▲ AED ${fmt(junProj-mayT)} above May`:`▼ AED ${fmt(mayT-junProj)} below May`} — mostly due to utility bills, not lifestyle choices.`,
+      action:"May target: AED 750 lifestyle — aim to beat it each month"
+    },
+    {
+      color:"#00d37f",icon:"🚖",type:"HABIT WIN",
+      title:"74 days with zero transport spend",
+      body:`April 26 was your last transport spend (Udrive). That's 51 days through May + 17 days in June = no taxis, no car rental. At April's rate of AED 180/month, you've saved AED 306 since then. Metro is working. Keep it.`,
+      action:"Continue — you're saving AED 180/month vs April"
+    },
+    {
+      color:"#f5a623",icon:"🛒",type:"WATCH",
+      title:"Grocery visits still fragmented — Jun 15 was 4 stores in one evening",
+      body:`June 15: Shaklan 7 → Madhoor Supermarket → Bhavna Vegetarian → Every Night Centre → Seif Sabet. Five separate store visits in one evening. While amounts are small (AED 3–22), each trip adds up. One planned weekly shop would cover all of these.`,
+      action:"Combine grocery runs — one shop per week, one store"
+    },
+    {
+      color:"#4d9fff",icon:"📺",type:"INFO",
+      title:"TV AED 1,559 correctly excluded everywhere",
+      body:`The May 26 Noon TV purchase is tagged as Electronics/One-Off and excluded from all budget tracking, projections, and monthly comparisons. It does not distort your spending picture. Toggle on in the header if you want to see it included in totals.`,
+      action:"No action needed — correctly isolated"
+    },
+  ];
+
+  let html=`
+    <div class="section-label">Financial Insights · Jun 2026</div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Apr Spend</div><div class="kpi-val" style="color:#a855f7">AED ${fmtK(aprT)}</div></div>
+      <div class="kpi"><div class="kpi-label">May Spend</div><div class="kpi-val green">AED ${fmtK(mayT)}</div></div>
+      <div class="kpi"><div class="kpi-label">Jun (17d)</div><div class="kpi-val amber">AED ${fmtK(junT)}</div></div>
+      <div class="kpi accent"><div class="kpi-label">Jun Proj.</div><div class="kpi-val ${junProj<mayT?"green":"red"}">AED ${fmtK(junProj)}</div></div>
+    </div>`;
+
+  insightData.forEach(s=>{
+    html+=`
+    <div class="insight-card">
+      <div class="insight-inner" style="border-color:${s.color}">
+        <div class="insight-header">
+          <div class="insight-left">
+            <span style="font-size:20px">${s.icon}</span>
+            <div>
+              <div class="insight-title">${s.title}</div>
+              <div class="insight-type" style="color:${s.color}">${s.type}</div>
+            </div>
+          </div>
+        </div>
+        <div class="insight-body">${s.body}</div>
+        <div class="insight-action">
+          <span style="color:${s.color};font-weight:700;font-family:var(--mono)">→</span>
+          <span>${s.action}</span>
+        </div>
+      </div>
+    </div>`;
+  });
+  document.getElementById("content").innerHTML=html;
+}
+
+// ═══════════════════════════════ PWA: INSTALL + SERVICE WORKER ═══════════
+let deferredInstallPrompt = null;
+
+function isStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true;
+}
+function isIOS(){
+  return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+}
+
+// Register service worker (enables installability + offline cache)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('SW registration failed', err));
+  });
+}
+
+// Chrome/Android: capture the native install prompt instead of letting it auto-show
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if (!isStandalone()) showInstallBanner('android');
+});
+
+// Already installed — hide any banner
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  hideInstallBanner();
+  showToast('✓ App installed — find it on your home screen','#00d37f');
+});
+
+function showInstallBanner(kind){
+  if (isStandalone()) return; // already running as installed app — never show
+  if (localStorage.getItem('installBannerDismissed') === 'true') return;
+  const el = document.getElementById('install-banner');
+  if (kind === 'ios') {
+    el.innerHTML = `
+      <div class="install-icon">📲</div>
+      <div class="install-text" style="flex:1">
+        <div class="install-title">Add to Home Screen</div>
+        <div class="install-sub">Install this as an app on your iPhone</div>
+        <div class="ios-steps">
+          <div class="ios-step"><span class="ios-step-num">1</span>Tap the <span class="ios-icon-inline">Share ⬆️</span> button below</div>
+          <div class="ios-step"><span class="ios-step-num">2</span>Scroll down, tap <span class="ios-icon-inline">Add to Home Screen</span></div>
+          <div class="ios-step"><span class="ios-step-num">3</span>Tap <span class="ios-icon-inline">Add</span> — done!</div>
+        </div>
+      </div>
+      <button class="install-dismiss" onclick="dismissInstallBanner()">✕</button>
+    `;
+  } else {
+    el.innerHTML = `
+      <div class="install-icon">📲</div>
+      <div class="install-text">
+        <div class="install-title">Install this app</div>
+        <div class="install-sub">Add to home screen for one-tap access</div>
+      </div>
+      <button class="install-cta" onclick="triggerInstall()">Install</button>
+      <button class="install-dismiss" onclick="dismissInstallBanner()">✕</button>
+    `;
+  }
+  el.style.display = 'flex';
+}
+
+function hideInstallBanner(){
+  document.getElementById('install-banner').style.display = 'none';
+}
+
+function dismissInstallBanner(){
+  localStorage.setItem('installBannerDismissed','true');
+  hideInstallBanner();
+}
+
+async function triggerInstall(){
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome === 'accepted') {
+    showToast('Installing…','#00d37f');
+  }
+  deferredInstallPrompt = null;
+  hideInstallBanner();
+}
+
+// iOS has no beforeinstallprompt — show manual instructions instead
+if (isIOS() && !isStandalone()) {
+  setTimeout(()=>showInstallBanner('ios'), 1200);
+}
+
+// ─── KICK OFF ─────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
